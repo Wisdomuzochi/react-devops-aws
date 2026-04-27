@@ -1,70 +1,194 @@
-# Getting Started with Create React App
+# react-devops-aws ⚛️
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![CI/CD](https://github.com/Wisdomuzochi/react-devops-aws/actions/workflows/deploy.yml/badge.svg)
+![AWS S3](https://img.shields.io/badge/AWS-S3-orange?logo=amazon-aws)
+![CloudFront](https://img.shields.io/badge/AWS-CloudFront-orange?logo=amazon-aws)
+![React](https://img.shields.io/badge/React-18-blue?logo=react)
 
-## Available Scripts
+Une **Single Page Application React** déployée automatiquement sur **AWS S3 + CloudFront** via un pipeline **GitHub Actions** — avec HTTPS, CDN mondial et invalidation de cache automatique à chaque push sur `main`.
 
-In the project directory, you can run:
+> Ce projet illustre le cycle de déploiement continu (CD) d'un frontend moderne : du code local à une URL publique mondiale, sans aucune intervention manuelle.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Architecture
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```
+Développeur (git push)
+       │
+       ▼
+┌──────────────────────┐
+│   GitHub Actions     │  ← Pipeline CD déclenché sur push vers main
+│                      │
+│  1. Checkout code    │
+│  2. Setup Node.js    │
+│  3. npm ci           │
+│  4. npm run build    │
+│  5. Configure AWS    │
+│  6. Sync → S3        │
+│  7. Invalide cache   │
+└────────┬─────────────┘
+         │
+         ▼
+┌──────────────────────┐
+│      AWS S3          │  ← Stockage des fichiers statiques (HTML/CSS/JS)
+│  (eu-west-3 / Paris) │     Static Website Hosting activé
+│                      │     Cache-Control : max-age=31536000
+└────────┬─────────────┘
+         │
+         ▼
+┌──────────────────────┐
+│   AWS CloudFront     │  ← CDN mondial — Points of Presence worldwide
+│                      │     HTTP → HTTPS redirect automatique
+│                      │     Invalidation cache à chaque déploiement
+│                      │
+│  URL publique HTTPS  │  ← Accessible partout dans le monde
+└──────────────────────┘
+```
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Fonctionnement du déploiement
 
-### `npm run build`
+Chaque `git push` sur `main` déclenche automatiquement :
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+1. Build de production React (npm run build)
+       ↓
+2. Synchronisation des fichiers vers S3 (aws s3 sync --delete)
+       ↓
+3. Invalidation du cache CloudFront (/* )
+       ↓
+4. Nouvelle version en ligne en ~2 minutes
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+**Zéro intervention manuelle. Zéro downtime.**
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## Stack technique
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+| Couche | Technologie |
+|---|---|
+| Framework Frontend | React 18 |
+| Build tool | Create React App |
+| Stockage | AWS S3 (Static Website Hosting) |
+| CDN | AWS CloudFront |
+| CI/CD | GitHub Actions |
+| Cloud | AWS (eu-west-3 — Paris) |
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Structure du projet
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+react-devops-aws/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml      # Pipeline CD GitHub Actions
+├── public/
+│   └── index.html
+├── src/
+│   ├── App.js              # Composant principal React
+│   ├── App.css
+│   └── index.js
+├── package.json
+└── package-lock.json
+```
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Démarrage rapide
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Prérequis
 
-### Code Splitting
+- Node.js 20+
+- npm
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Lancer en local
 
-### Analyzing the Bundle Size
+```bash
+# Cloner le repo
+git clone git@github.com:Wisdomuzochi/react-devops-aws.git
+cd react-devops-aws
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# Installer les dépendances
+npm install
 
-### Making a Progressive Web App
+# Lancer le serveur de développement
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+App disponible sur : `http://localhost:3000`
 
-### Advanced Configuration
+### Build de production
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```bash
+npm run build
+```
 
-### Deployment
+Génère un dossier `build/` contenant les fichiers statiques optimisés et minifiés.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
+## Pipeline CI/CD
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Le pipeline est défini dans `.github/workflows/deploy.yml` et se déclenche automatiquement à chaque push sur `main`.
+
+### Secrets GitHub requis
+
+| Secret | Description |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | Clé d'accès de l'utilisateur IAM |
+| `AWS_SECRET_ACCESS_KEY` | Clé secrète de l'utilisateur IAM |
+| `CLOUDFRONT_DISTRIBUTION_ID` | ID de la distribution CloudFront |
+
+L'utilisateur IAM suit le **principe du moindre privilège** — permissions limitées à S3 et CloudFront uniquement.
+
+---
+
+## Configuration AWS
+
+### S3 — Static Website Hosting
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::react-devops-aws-wisdom/*"
+    }
+  ]
+}
+```
+
+### CloudFront
+
+| Paramètre | Valeur |
+|---|---|
+| Origin | S3 Website Endpoint |
+| Viewer Protocol Policy | Redirect HTTP to HTTPS |
+| Cache-Control | max-age=31536000 |
+| Invalidation | `/*` à chaque déploiement |
+
+---
+
+## Concepts DevOps illustrés
+
+- **Continuous Deployment (CD)** — chaque push déclenche un déploiement automatique en production
+- **Static Site Hosting** — séparation frontend/backend, scalabilité infinie, coût quasi nul
+- **CDN global** — distribution mondiale via CloudFront Points of Presence
+- **Cache invalidation** — mise à jour immédiate du contenu après chaque déploiement
+- **IAM least-privilege** — permissions minimales nécessaires pour le pipeline
+- **Cache-Control optimisé** — performance maximale pour les assets statiques
+
+---
+
+## Auteur
+
+**Wisdom MUONAKA**
+[GitHub](https://github.com/Wisdomuzochi) · [LinkedIn](https://linkedin.com/in/wisdom-muonaka-45781b321)
