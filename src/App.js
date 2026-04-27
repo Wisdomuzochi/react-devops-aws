@@ -7,16 +7,8 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          Deployed automatically via GitHub Actions + S3 + CloudFront
         </p>
-        
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Deployed automatically via GitHub Actions → S3 → CloudFront
-        </a>
       </header>
     </div>
   );
